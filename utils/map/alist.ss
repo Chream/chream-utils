@@ -1,0 +1,68 @@
+;;;; gerbil-scheme/chream-utils/map/alist.ss
+
+(import :std/iter)
+(export #t)
+
+;; Alist.
+(def (make-alist name: (name 'map) eq-fn: (eq-fn? eq?))
+  (let* ((state [name])
+         (map (cdr state)) ;Get rid of name.
+         (type 'alist-proc))
+    (lambda (msg . args)
+      (let ((args (append (cons map args) (list test: eq-fn?)))) ;; All need the alist arg.
+        (case msg
+          ((lookup get fetch ref recall)       (apply lookup args))
+          ((drop! del! delete! del! remove!)   (set! map (apply drop args)))
+          ((insert! ins! set! store! install!) (set! map (apply insert args)))
+          ((update!)                           (set! map (apply update args)))
+          ((clear!)                            (set! map '()))
+          ((type)                              type)
+          (else (error "Invalid command passed to alist procedure.")))))))
+
+;; Stateful (proc) interface.
+(def (alist-proc? proc)
+  (and (procedure? proc)
+       (eq? 'alist-proc (proc 'type))))
+(def (drop! map-proc k)
+  (map-proc 'drop! k))
+(def (insert! map-proc k v)
+  (map-proc 'insert! k v))
+(def (update! map-proc k v)
+  (map-proc 'update! k v))
+
+;; Pure interface.
+(def (empty-alist) '())
+(def (clear alist) '())
+
+(def (lookup alist/map-proc k test: (eq-fn? equal?))
+  (cond ((alist-proc? alist/map-proc) (alist/map-proc 'lookup k))
+        (#t (call/cc
+              (lambda (return)
+                (for ([kcur . vcur] alist/map-proc)
+                     (when (eq-fn? kcur k)
+                       (return (values vcur #t))))
+                (values #f #f))))))
+
+(def (drop alist k test: (eq-fn? equal?))
+  (let* ((vf #f)
+         (f? #f)
+         (map-new (filter (match <> ([kcur . vcur]
+                                     (if (eq-fn? kcur k)
+                                       (begin
+                                         (unless f?
+                                           (set! vf vcur)
+                                           (set! f? #t))
+                                         #f)
+                                       #t)))
+                          map)))
+    (values map-new vf f?)))
+
+(def (insert map k v test: (eq-fn? equal?))
+  (values (cons [k . v]
+                (filter (match <>
+                          ([kcur . vcur] (if (eq-fn? kcur k)
+                                           #f #t)))
+                        map))))
+
+(def (update map k v)
+  (cons [k v] map))

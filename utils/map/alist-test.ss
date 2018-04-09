@@ -1,4 +1,5 @@
-;;;; gerbil-scheme/funds/src/alist-test.ss
+;;; -*- Gerbil -*-
+;;;; gerbil/chream-utils/utils/map/alist-test.ss
 
 (import "alist" "../logger")
 

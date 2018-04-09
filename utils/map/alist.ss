@@ -11,12 +11,13 @@
       (let ((args (append (cons map args) (list test: eq-fn?)))) ;; All need the alist arg.
         (case msg
           ((lookup get fetch ref recall)       (apply lookup args))
-          ((drop! del! delete! del! remove!)   (set! map (apply drop args)))
+          ((drop! del! delete! remove!)   (set! map (apply drop args)))
           ((insert! ins! set! store! install!) (set! map (apply insert args)))
           ((update!)                           (set! map (apply update args)))
           ((clear!)                            (set! map '()))
           ((type)                              type)
-          (else (error "Invalid command passed to alist procedure.")))))))
+          ((state)                             map)
+          (else (error "Invalid command passed to alist procedure: ~S" msg)))))))
 
 ;; Stateful (proc) interface.
 (def (alist-proc? proc)

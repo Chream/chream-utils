@@ -1,6 +1,5 @@
 ;;;; gerbil-scheme/chream-utils/map/alist.ss
 
-(import :std/iter)
 (export #t)
 
 ;; Alist.
@@ -35,13 +34,15 @@
 (def (clear alist) '())
 
 (def (lookup alist/map-proc k test: (eq-fn? equal?))
-  (cond ((alist-proc? alist/map-proc) (alist/map-proc 'lookup k))
-        (#t (call/cc
-              (lambda (return)
-                (for ([kcur . vcur] alist/map-proc)
-                     (when (eq-fn? kcur k)
-                       (return (values vcur #t))))
-                (values #f #f))))))
+  (if (alist-proc? alist/map-proc)
+    (alist/map-proc 'lookup k)
+    (let lp ((alist alist/map-proc))
+      (cond ((null? alist)
+             (values #f #f))
+            ((eq-fn? k (caar alist))
+             (values (cdar alist) #t))
+            (else
+             (lp (cdr alist)))))))
 
 (def (drop alist k test: (eq-fn? equal?))
   (let* ((vf #f)

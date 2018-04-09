@@ -1,7 +1,8 @@
 ;;; -*- Gerbil -*-
 ;;;gerbil/chream-utils/utils/misc/repr.ss
 
-(import :std/misc/repr)
+(import :std/misc/rtd
+        (only-in :std/srfi/1 append-map))
 (export #t)
 
 ;; object inspection

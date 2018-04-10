@@ -25,6 +25,8 @@
     (lambda (in)
       (read-json-equal in))))
 
+(def (make-json) (make-ht))
+
 (def (copy-json obj)
   (string->json-object (json-object->string obj)))
 
@@ -33,9 +35,9 @@
     (let lp! ((table-1 table)
               (entry-spec-1 entry-spec))
       (cond ((null? entry-spec-1)
-             (error "Invalid number of keys. key-length: : " (length entry-spec))
-             ((= 1 (length entry-spec-1))
-              (set-fn! table-1 (car entry-spec-1) (constructor-fn))))
+             (error "Invalid number of keys. key-length: : " (length entry-spec)))
+            ((= 1 (length entry-spec-1))
+             (set-fn! table-1 (car entry-spec-1) (constructor-fn)))
             ((= 2 (length entry-spec-1))
              (set-fn! table-1 (car entry-spec-1) (cadr entry-spec-1)))
             (else
@@ -44,17 +46,17 @@
                (cond ((hash-table? entry)
                       (lp! entry (cdr entry-spec-1)))
                      (entry
-                      (let (ht-1 (make-hash-table))
+                      (let (ht-1 (make-json))
                         (set-fn! ht-1 "%%old-value" entry)
                         (force-set-fn! table-1 key ht-1)
                         (lp! ht-1 (cdr entry-spec-1))))
                      (else
-                      (let (ht-2 (make-hash-table))
+                      (let (ht-2 (make-json))
                         (set-fn! table-1 key ht-2)
                         (lp! ht-2 (cdr entry-spec-1)))))))))))
 
-(def json-add! (json-input-fn-generator hash-get hash-add! hash-put! make-hash-table))
-(def json-put! (json-input-fn-generator hash-get hash-put! hash-put! make-hash-table))
+(def json-add! (json-input-fn-generator hash-get hash-add! hash-put! make-json))
+(def json-put! (json-input-fn-generator hash-get hash-put! hash-put! make-json))
 ;; add list version?
 
 (def (json-delete! ht . entry-spec)
@@ -115,6 +117,14 @@
                  (lp! entry (cdr entry-spec-1))
                  (error "json-append!: key not present!" (car entry-spec-1)))))))))
 
+(def (json-merge! ht1 ht2)
+  (hash-for-each
+   (lambda (k v)
+     (cond ((hash-table? v) (json-merge! (json-get ht1 k) v))
+           ((list? v)       (json-put! ht1 k (delete-duplicates! (append (json-get ht1 k) v))))
+           (else (json-put! ht1 k v))))
+   ht2))
+
 (def (json-make-ref! ht ref-cat val)
 
   (def (make-new-ref! refs val)
@@ -123,7 +133,7 @@
       new-ref))
 
   (def (make-refs! ht ref-cat)
-    (json-add! ht ref-cat (make-hash-table)))
+    (json-add! ht ref-cat (make-json)))
 
   (if-let (refs (json-get ht ref-cat))
           (begin

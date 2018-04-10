@@ -13,11 +13,12 @@
 (def (slot-names obj)
   (type-descriptor-plist (object-type obj)))
 
-(def (object->list obj)
-  (cond ((class-instance? obj)
-         (class->list obj))
-        ((struct-instance? obj #f)
-         (struct->list obj))))
+;; NOTE Does not work.
+;; (def (object->list obj)
+;;   (cond ((class-instance? obj #f)
+;;          (class->list obj))
+;;         ((struct-instance? obj #f)
+;;          (struct->list obj))))
 
 (def (object-info obj)
   (cons (object-type obj)

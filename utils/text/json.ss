@@ -13,7 +13,6 @@
 
 (export #t)
 
-(defalias make-ht make-hash-table)
 (defalias pp pretty-print-json)
 
 (def (read-json-equal in)
@@ -25,7 +24,7 @@
     (lambda (in)
       (read-json-equal in))))
 
-(def (make-json) (make-ht))
+(def (make-json) (make-hash-table))
 
 (def (copy-json obj)
   (string->json-object (json-object->string obj)))

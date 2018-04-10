@@ -3,7 +3,7 @@
 
 (import :std/srfi/1
         (only-in :std/pregexp pregexp-match)
-        (only-in :std/text/json read-json json-symbolic-keys string->json-object json-object->string)
+        (only-in :std/text/json read-json write-json json-symbolic-keys string->json-object json-object->string)
         (only-in :gerbil/gambit/threads spawn)
         (only-in :clan/utils/base if-let when-let)
         (only-in :clan/utils/json pretty-print-json)
@@ -23,6 +23,12 @@
   (call-with-input-file file
     (lambda (in)
       (read-json-equal in))))
+
+(def (ensure-json-file-exists! path)
+  (unless (file-exists? path)
+    (call-with-output-file path
+      (lambda (out)
+        (write-json (make-json) out)))))
 
 (def (make-json) (make-hash-table))
 
@@ -120,7 +126,7 @@
   (hash-for-each
    (lambda (k v)
      (cond ((hash-table? v) (json-merge! (json-get ht1 k) v))
-           ((list? v)       (json-put! ht1 k (delete-duplicates! (append (json-get ht1 k) v))))
+           ((list? v)       (json-put! ht1 k (delete-duplicates! (append (json-get ht1 k) v) equal?)))
            (else (json-put! ht1 k v))))
    ht2))
 

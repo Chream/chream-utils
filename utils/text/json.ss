@@ -32,6 +32,9 @@
 
 (def (make-json) (make-hash-table))
 
+(def (json-empty? json)
+  (hash-empty? json))
+
 (def (copy-json obj)
   (string->json-object (json-object->string obj)))
 

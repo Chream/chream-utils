@@ -129,7 +129,7 @@
   (hash-for-each
    (lambda (k v)
      (cond ((hash-table? v) (json-merge! (json-get ht1 k) v))
-           ((list? v)       (json-put! ht1 k (delete-duplicates! (append (json-get ht1 k) v) equal?)))
+           ((list? v)       (json-put! ht1 k (append (json-get ht1 k) v)))
            (else (json-put! ht1 k v))))
    ht2))
 

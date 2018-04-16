@@ -1,1 +1,1 @@
-(package: chream depend: github.com/fare/gerbil-utils)
+(package: chream depend: (github.com/fare/gerbil-utils))

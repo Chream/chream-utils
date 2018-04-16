@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/misc/nocat.ss
+;;; © Chream
 
 (export #t)
 

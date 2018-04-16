@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/text/json.ss
+;;; © Chream
 
 (import :std/srfi/1
         (only-in :std/pregexp pregexp-match)

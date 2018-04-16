@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/misc/debug.ss
+;;; © Chream
 
 (import (only-in :std/format format)
         (only-in :std/misc/repr prn))

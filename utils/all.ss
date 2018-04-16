@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/all.ss
+;;; © Chream
 
 (import "gerbil/all"
         "map/all"

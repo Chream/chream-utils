@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/map/all.ss
+;;; © Chream
 
 (import "json")
 (export (import: "json"))

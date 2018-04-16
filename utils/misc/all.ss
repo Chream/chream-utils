@@ -1,4 +1,6 @@
 ;;; -*- Gerbil -*-
+;;; © Chream
+
 (import "asserts"
         "debug"
         "files"

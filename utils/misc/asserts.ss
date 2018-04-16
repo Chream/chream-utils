@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;;gerbil/chream-utils/utils/misc/asserts.ss
+;;; © Chream
 
 (import :std/format)
 (export #t)

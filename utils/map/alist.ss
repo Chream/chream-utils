@@ -1,4 +1,5 @@
-;;;; gerbil-scheme/chream-utils/map/alist.ss
+;;; -*- Gerbil -*-
+;;; © Chream
 
 (export #t)
 

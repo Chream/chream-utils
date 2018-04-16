@@ -1,6 +1,5 @@
 ;;; -*- Gerbil -*-
-;;; Christopher Eames (chream) <chream-gmx.com>
-;;; gerbil/apropos/apropos/apropos.ss
+;;; © Chream
 
 (import :std/pregexp
         :std/srfi/1

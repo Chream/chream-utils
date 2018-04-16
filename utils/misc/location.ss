@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/misc/location.ss
+;;; © Chream
 
 (export #t)
 

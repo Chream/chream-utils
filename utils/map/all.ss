@@ -1,5 +1,6 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/map/all.ss
+;;; © Chream
+
 (import "alist"
         "hash")
 (export (import: "alist"

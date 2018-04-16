@@ -1,4 +1,5 @@
-;;;; gerbil-scheme/chream-utils/src/logger.ss
+;;; -*- Gerbil -*-
+;;; © Chream
 
 (import (only-in :std/format format)
         (only-in :clan/utils/date current-timestamp string<-timestamp)

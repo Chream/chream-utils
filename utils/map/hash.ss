@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/map/hash.ss
+;;; © Chream
 
 (import :std/format)
 (export #t)

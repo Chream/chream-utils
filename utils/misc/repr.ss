@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-;;;gerbil/chream-utils/utils/misc/repr.ss
+;;; © Chream
 
 (import :std/misc/rtd
         (only-in :std/srfi/1 append-map))

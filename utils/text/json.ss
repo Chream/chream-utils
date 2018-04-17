@@ -8,6 +8,7 @@
         (only-in :clan/utils/base if-let when-let)
         (only-in :clan/utils/json pretty-print-json)
 
+        (only-in "../misc/debug" logg)
         (only-in  "../misc/asserts" check-type)
         "../map/hash")
 
@@ -17,7 +18,13 @@
 
 (def (read-json-equal in)
   (parameterize ((json-symbolic-keys #f))
-    (read-json in)))
+    (let (r (read-json in))
+      (cond ((eof-object? r)
+             (logg "is eof!")
+             (make-json))
+            (else
+             (logg "is not eof..")
+             r)))))
 
 (def (read-json-equal-file file)
   (call-with-input-file file
@@ -126,10 +133,18 @@
                  (error "json-append!: key not present!" (car entry-spec-1)))))))))
 
 (def (json-merge! ht1 ht2)
+  (check-type hash-table? ht1)
+  (check-type hash-table? ht2)
   (hash-for-each
    (lambda (k v)
-     (cond ((hash-table? v) (json-merge! (json-get ht1 k) v))
-           ((list? v)       (json-put! ht1 k (append (json-get ht1 k) v)))
+     (cond ((hash-table? v)
+            (unless (hash-table? (json-get ht1 k))
+              (hash-put! ht1 k (make-json)))
+            (json-merge! (json-get ht1 k) v))
+           ((list? v)
+            (unless (list? (json-get ht1 k))
+              (hash-put! ht1 k (list)))
+            (json-put! ht1 k (append (json-get ht1 k) v)))
            (else (json-put! ht1 k v))))
    ht2))
 

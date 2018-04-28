@@ -178,11 +178,8 @@
   (json-get ht key ref))
 
 (def (json-refs-expand! ht obj)
-  (call/cc
-    (lambda (ret)
-      (hash-for-each
-       (lambda (k v)
-         (when-let (ref-val (json-get ht k v))
-                   (json-put! obj k ref-val)
-                   (ret ref-val)))
-       obj))))
+  (hash-for-each
+   (lambda (k v)
+     (when-let (ref-val (json-get ht k v))
+               (json-put! obj k ref-val)))
+   obj))

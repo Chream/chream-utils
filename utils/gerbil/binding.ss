@@ -27,7 +27,7 @@
         :gerbil/gambit/ports
         :gerbil/gambit/threads
 
-        (phi: -1 <MOP> )
+        (phi: -1 <MOP>)
 
         "../misc/asserts")
 

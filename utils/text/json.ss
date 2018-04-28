@@ -4,7 +4,6 @@
 (import :std/srfi/1
         (only-in :std/pregexp pregexp-match)
         (only-in :std/text/json read-json write-json json-symbolic-keys string->json-object json-object->string)
-        (only-in :gerbil/gambit/threads spawn)
         (only-in :clan/utils/base if-let when-let)
         (only-in :clan/utils/json pretty-print-json)
 
@@ -20,10 +19,8 @@
   (parameterize ((json-symbolic-keys #f))
     (let (r (read-json in))
       (cond ((eof-object? r)
-             (logg "is eof!")
              (make-json))
             (else
-             (logg "is not eof..")
              r)))))
 
 (def (read-json-equal-file file)

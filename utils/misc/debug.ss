@@ -11,3 +11,19 @@
      (begin
        (display (format "~S == " 'var))
        (prn var)))))
+
+(defrules let-debug ()
+  ((_ ((id exp) rest) body ...)
+   (let (id exp)
+     (log debug "Let binding." id)
+     (gen rest body ...)))
+
+  ((_ ((id exp)) body ...)
+   (let (id exp)
+     (log debug "Let binding." id)
+     body ...))
+
+  ((_ (id exp) body ...)
+   (let (id exp)
+     (log debug "Let binding." id)
+     body ...)))

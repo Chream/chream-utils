@@ -33,37 +33,37 @@
 
 (export #t )
 
-(def (binding-type binding)
-  "Returns a general type for the BINDING. Type, a symbol, can be 'macro,
-   'procedure, 'class, 'struct."
-  (def (type->symbol type-object)
-    (cond ((procedure? type-object)
-           'macro)
-          ((runtime-struct-info? type-object)
-           'struct)
-          ((runtime-class-info? type-object)
-           'class)
-          (else #f)))
+;; (def (binding-type binding)
+;;   "Returns a general type for the BINDING. Type, a symbol, can be 'macro,
+;;    'procedure, 'class, 'struct."
+;;   (def (type->symbol type-object)
+;;     (cond ((procedure? type-object)
+;;            'macro)
+;;           ((runtime-struct-info? type-object)
+;;            'struct)
+;;           ((runtime-class-info? type-object)
+;;            'class)
+;;           (else #f)))
 
-  (match binding
-    ((import-binding id _ _ _ _ e)
-     (binding-type e))
-    ((syntax-binding _ _ _ e)
-     (type->symbol (gx#expander-e e)))
-    ((module-binding id key phi ctx)
-     (let ((proc/val (try
-                      ;; FIXME: This does not find
-                      ;; the needed bindings. Are they
-                      ;; not evaluated by import-module ?
-                      ((current-expander-eval) id)
-                      (catch (exception? e)
-                        #f))))
-       (cond ((procedure? proc/val)
-              'procedure)
-             (proc/val 'variable)
-             (else 'unknown))))
-    ((extern-binding _ _ _) 'procedure)
-    (else #f)))
+;;   (match binding
+;;     ((import-binding id _ _ _ _ e)
+;;      (binding-type e))
+;;     ((syntax-binding _ _ _ e)
+;;      (type->symbol (gx#expander-e e)))
+;;     ((module-binding id key phi ctx)
+;;      (let ((proc/val (try
+;;                       ;; FIXME: This does not find
+;;                       ;; the needed bindings. Are they
+;;                       ;; not evaluated by import-module ?
+;;                       ((current-expander-eval) id)
+;;                       (catch (exception? e)
+;;                         #f))))
+;;        (cond ((procedure? proc/val)
+;;               'procedure)
+;;              (proc/val 'variable)
+;;              (else 'unknown))))
+;;     ((extern-binding _ _ _) 'procedure)
+;;     (else #f)))
 
 (def (binding-ns binding)
   "Returns a `list' of namespaces that the BINDING is in
@@ -90,19 +90,19 @@
        "extern")
       (else #f))))
 
-(def (structure-slots binding)
-  (check-type gx#syntax-binding? binding)
-  (let (type (!> binding
-                 syntax-binding-e
-                 gx#expander-e))
-    (match type
-      ((? runtime-struct-info?)
-       (runtime-struct-fields
-        (runtime-type-exhibitor type)))
-      ((? runtime-class-info?)
-       (runtime-class-slots
-        (runtime-type-exhibitor type)))
-      (else "Unknown structure type." type))))
+;; (def (structure-slots binding)
+;;   (check-type gx#syntax-binding? binding)
+;;   (let (type (!> binding
+;;                  syntax-binding-e
+;;                  gx#expander-e))
+;;     (match type
+;;       ((? runtime-struct-info?)
+;;        (runtime-struct-fields
+;;         (runtime-type-exhibitor type)))
+;;       ((? runtime-class-info?)
+;;        (runtime-class-slots
+;;         (runtime-type-exhibitor type)))
+;;       (else "Unknown structure type." type))))
 
 (def (operation-lambda-list binding loc)
   (let (dproc (##decompile ((current-expander-eval) (gx#binding-id binding))))

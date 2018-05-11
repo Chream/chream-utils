@@ -13,7 +13,7 @@
         "misc/debug"
         "misc/repr")
 
-(export (except-out #t get-caller logtupe<-level>))
+(export (except-out #t get-caller))
 
 ;; This will get the caller of the function ;; through a continuation object.
 

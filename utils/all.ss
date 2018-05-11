@@ -5,9 +5,11 @@
         "map/all"
         "misc/all"
         "text/all"
-        "logger")
+        "logger"
+        "env")
 (export (import: "gerbil/all"
                  "map/all"
                  "misc/all"
                  "text/all"
-                 "logger"))
+                 "logger"
+                 "env"))

@@ -8,10 +8,9 @@
         (only-in :std/text/json read-json write-json json-symbolic-keys string->json-object json-object->string)
         (only-in :clan/utils/base if-let when-let)
         (only-in :clan/utils/json pretty-print-json)
-
-        (only-in "../misc/debug" logg)
         (only-in  "../misc/asserts" check-type)
-        "../map/hash")
+        "../map/hash"
+        "../misc/repr")
 
 (export #t)
 

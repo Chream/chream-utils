@@ -55,7 +55,8 @@
       (lambda (out)
         (write-json (make-json) out)))))
 
-(def (make-json) (make-hash-table))
+(def (make-json size: (size 20))
+  (make-hash-table size: size))
 
 (def (json-empty? json)
   (hash-empty? json))

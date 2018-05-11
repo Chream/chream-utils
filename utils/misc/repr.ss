@@ -2,31 +2,50 @@
 ;;; © Chream
 
 (import :std/misc/rtd
-        (only-in :std/srfi/1 append-map))
+        :std/sugar
+        (only-in :gerbil/gambit display-exception)
+        (only-in :std/srfi/1 append-map)
+        (only-in "asserts" check-type))
 (export #t)
 
 ;; object inspection
 
-(def (slot-nr obj)
+(def (slot-info obj)
+  (check-type class-object? obj)
   (type-descriptor-slots (object-type obj)))
 
 (def (slot-names obj)
-  (type-descriptor-plist (object-type obj)))
+  (cdar (type-descriptor-plist (object-type obj))))
 
-;; NOTE Does not work.
-;; (def (object->list obj)
-;;   (cond ((class-instance? obj #f)
-;;          (class->list obj))
-;;         ((struct-instance? obj #f)
-;;          (struct->list obj))))
+(def (struct-object? obj)
+  (try
+   (let (plist (type-descriptor-plist
+                (object-type obj)))
+     (match plist
+       ([[fields: slots ...]] #t)
+       (else #f)))
+   (catch (e)
+     #f)))
 
-(def (object-info obj)
-  (cons (object-type obj)
-        (map (cut cons <> <>)
-             (append-map cdr (slot-names obj))
-             ;; Works for class as well.
-             ;; will not return names though.
-             (cdr (struct->list obj)))))
+(def (class-object? obj)
+  (try
+   (let (plist (type-descriptor-plist
+                (object-type obj)))
+     (match plist
+       ([[slots: slots ...]] #t)
+       (else #f)))
+   (catch (e)
+     #f)))
+
+(def (object->list obj)
+  (cond ((class-object? obj)
+         (cons type: (class->list obj)))
+        ((struct-object? obj)
+         (let* ((type (object-type obj))
+                (slot-names (map symbol->keyword (slot-names obj)))
+                (slot-values (cdr (struct->list obj))))
+           (cons* type: type (append-map list slot-names slot-values))))
+        (else (error "Not an object ~S" obj))))
 
 ;; procedure inspection
 

@@ -9,7 +9,9 @@
         (only-in :gerbil/gambit/threads current-thread)
         (only-in :gerbil/gambit/continuations continuation-capture)
         (only-in :clan/utils/logger json-logger)
-        "text/json")
+        "text/json"
+        "misc/debug"
+        "misc/repr")
 
 (export (except-out #t get-caller logtupe<-level>))
 
@@ -23,43 +25,69 @@
 
 ;; -----
 
-(defstruct log-entry (thread type msg sym val))
-
 (def (make-logger path top: top name: name)
+
+  (def (ensure-json-type obj)
+    (cond
+      ((struct-object? obj)
+       (object->json-object obj))
+      ((class-object? obj)
+       (object->json-object obj))
+      (#t obj)))
+
   (let ((logger (json-logger path top: top name: name)))
     (lambda (cmd . args)
       (continuation-capture
        (lambda (cont)
-         (case cmd
-           ((error warn trace debug info)
-            (try
-             (with ([msg sym val] args)
-               (let* ((caller (get-caller cont))
-                      (caller-name (or (##procedure-friendly-name caller) '?))
-                      (thread (thread-name (current-thread)))
-                      (info-obj (make-log-entry thread cmd msg sym val))
-                      (info-json (object->json-object info-obj)))
-                 ;; have to remove the object type json entry.
-                 (displayln (json-get info-json __struct:))
-                 (logger info-json)))
-             (catch (e)
-               (display-exception e))))
-           ((state) logger)
-           ((dir path) (subpath top path))
-           (else (error "Uknown command for logger."))))))))
+         (let* ((caller (get-caller cont))
+                (caller-name (or (##procedure-friendly-name caller) '?))
+                (thread (thread-name (current-thread)))
+                (entry (make-json)))
+           (try
+            (json-add! entry caller: caller-name)
+            (json-add! entry thread: thread)
+            (json-add! entry type: cmd)
+            (case cmd
+              ((error warn trace debug info)
+               (match args
+                 ([msg sym val]
+                  (json-add! entry msg: msg)
+                  (json-add! entry sym: sym)
+                  (json-add! entry val: val))
+                 ([msg]
+                  (json-add! entry msg: msg)))
+               (logger entry))
+              ((state) logger)
+              ((dir path) (subpath top path))
+              (else (error "Uknown command for logger.")))
+            (catch (e)
+              (display-exception e)
+              json-put! (entry type: 'log-error)
+              (json-put! entry exception: (ensure-json-type e))
+              (logger entry)))))))))
 
 (defrules log-info ()
   ((_ logger msg sym)
-   (logger 'info msg 'sym sym)))
+   (logger 'info msg 'sym sym))
+  ((_ logger msg)
+   (logger 'info msg)))
 (defrules log-debug ()
   ((_ logger msg sym)
-   (logger 'debug msg 'sym sym)))
+   (logger 'debug msg 'sym sym))
+  ((_ logger msg)
+   (logger 'debug msg)))
 (defrules log-trace ()
   ((_ logger msg sym)
-   (logger 'trace msg 'sym sym)))
+   (logger 'trace msg 'sym sym))
+  ((_ logger msg)
+   (logger 'trace msg)))
 (defrules log-warn ()
   ((_ logger msg sym)
-   (logger 'warn msg 'sym sym)))
+   (logger 'warn msg 'sym sym))
+  ((_ logger msg)
+   (logger 'warn msg)))
 (defrules log-error ()
   ((_ logger msg sym)
-   (logger 'error msg 'sym sym)))
+   (logger 'error msg 'sym sym))
+  ((_ logger msg)
+   (logger 'error msg)))

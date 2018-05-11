@@ -5,12 +5,15 @@
         (only-in :std/misc/repr prn))
 (export #t)
 
-(define-syntax logg
-  (syntax-rules ()
-    ((_ var)
-     (begin
-       (display (format "~S == " 'var))
-       (prn var)))))
+(defrules logg ()
+  ((_ var)
+   (begin
+     (display (format "~S == " 'var))
+     (prn var)))
+  ((_ msg var)
+   (begin
+     (display (format "~S. ~S == " msg 'var))
+     (prn var))))
 
 (defrules let-debug ()
   ((_ ((id exp) rest) body ...)

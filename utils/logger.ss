@@ -13,16 +13,6 @@
 
 (export (except-out #t get-caller logtupe<-level>))
 
-(def *log-level* (make-parameter 6))
-(def (logtype<-level level)
-  (case level
-    ((1) 'ERROR)
-    ((2) 'WARN)
-    ((3) 'INFO)
-    ((4) 'DEBUG)
-    ((5) 'TRACE)
-    ((6) 'TEST)))
-
 ;; This will get the caller of the function ;; through a continuation object.
 
 (def (get-caller cont)

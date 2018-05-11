@@ -10,13 +10,15 @@
         (only-in :clan/utils/json pretty-print-json)
         (only-in  "../misc/asserts" check-type)
         "../map/hash"
-        "../misc/repr")
+        "../misc/repr"
+        "../misc/asserts")
 
 (export #t)
 
 (defalias pp pretty-print-json)
 
 (def (object->json-object obj)
+  (check-type object? obj)
   (let (json (make-json))
     (with ([type: type slots ...] (object->list obj))
       (when (struct-object? obj)

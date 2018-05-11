@@ -3,17 +3,37 @@
 
 (import :std/srfi/1
         (only-in :std/pregexp pregexp-match)
+        (only-in :std/misc/list plist->alist)
+        (only-in :std/misc/rtd type-name)
         (only-in :std/text/json read-json write-json json-symbolic-keys string->json-object json-object->string)
         (only-in :clan/utils/base if-let when-let)
         (only-in :clan/utils/json pretty-print-json)
-
-        (only-in "../misc/debug" logg)
         (only-in  "../misc/asserts" check-type)
-        "../map/hash")
+        "../map/hash"
+        "../misc/repr")
 
 (export #t)
 
 (defalias pp pretty-print-json)
+
+(def (object->json-object obj)
+  (let (json (make-json))
+    (with ([type: type slots ...] (object->list obj))
+      (when (struct-object? obj)
+        (json-add! json __struct: (type-name type)))
+      (when (class-object? obj)
+        (json-add! json __class: (type-name type)))
+      (for-each
+        (match <>
+          ([k . v] (cond
+                    ((object? v)
+                     (json-add! json
+                                k
+                                (object->json-object v)))
+                    (else
+                     (json-add! json k v)))))
+        (plist->alist slots)))
+    json))
 
 (def (read-json-equal in)
   (parameterize ((json-symbolic-keys #f))
@@ -34,7 +54,8 @@
       (lambda (out)
         (write-json (make-json) out)))))
 
-(def (make-json) (make-hash-table))
+(def (make-json size: (size 20))
+  (make-hash-table size: size))
 
 (def (json-empty? json)
   (hash-empty? json))
@@ -59,7 +80,7 @@
                       (lp! entry (cdr entry-spec-1)))
                      (entry
                       (let (ht-1 (make-json))
-                        (set-fn! ht-1 "%%old-value" entry)
+                        (set-fn! ht-1 "__old-value" entry)
                         (force-set-fn! table-1 key ht-1)
                         (lp! ht-1 (cdr entry-spec-1))))
                      (else
@@ -76,15 +97,15 @@
             (entry-spec-1 entry-spec))
     (cond ((null? entry-spec-1)
            (error "Illegal number of arguments Must be odd. length: "
-             (length entry-spec-1))
-           ((= 1 (length entry-spec-1))
-            (let* ((key (car entry-spec-1))
-                   (present? (hash-get ht-1 (car entry-spec-1))))
-              (if present?
-                (begin
-                  (hash-remove! ht-1 (car entry-spec-1))
-                  (values present? #t))
-                (values #f #f)))))
+             (length entry-spec-1)))
+          ((= 1 (length entry-spec-1))
+           (let* ((key (car entry-spec-1))
+                  (present? (hash-get ht-1 (car entry-spec-1))))
+             (if present?
+               (begin
+                 (hash-remove! ht-1 (car entry-spec-1))
+                 (values present? #t))
+               (values #f #f))))
           (else
            (let* ((key (car entry-spec-1))
                   (entry (hash-get ht-1 key)))

@@ -1,11 +1,15 @@
 ;;; -*- Gerbil -*-
 ;;; © Chream
 
-(import (only-in :std/format format)
+(import :std/sugar
+        (only-in :gerbil/gambit display-exception thread-name)
+        (only-in :std/format format)
         (only-in :clan/utils/date current-timestamp string<-timestamp)
+        (only-in :clan/utils/filesystem subpath)
         (only-in :gerbil/gambit/threads current-thread)
         (only-in :gerbil/gambit/continuations continuation-capture)
-        (only-in :clan/utils/logger text-logger))
+        (only-in :clan/utils/logger json-logger)
+        "text/json")
 
 (export (except-out #t get-caller logtupe<-level>))
 
@@ -29,39 +33,43 @@
 
 ;; -----
 
-(def (make-logger name: (name #f) level: level file: file)
-  (let ((logger (text-logger name: name)))
-    (lambda (msg . args)
+(defstruct log-entry (thread type msg sym val))
+
+(def (make-logger path top: top name: name)
+  (let ((logger (json-logger path top: top name: name)))
+    (lambda (cmd . args)
       (continuation-capture
        (lambda (cont)
-         (case msg
-           ((log) (with ([msg sym obj] args)
-                    (let* ((caller (get-caller cont))
-                           (text
-                            (format "~S || ~S || ~S ||caller: ~40S ||msg: ~40S ||obj-info: ~50S === ~50S ||~n"
-                                    (string<-timestamp (current-timestamp))
-                                    (current-thread)
-                                    (logtype<-level level)
-                                    (or (##procedure-friendly-name caller) '?)
-                                    msg sym obj)))
-                      (cond ((>= (*log-level*) level)
-                             ;; (display text)
-                             (logger file text)
-                             (void))
-                            ((<= (*log-level*) level) (void))))))
-           ((state) logger)))))))
+         (case cmd
+           ((error warn trace debug info)
+            (try
+             (with ([msg sym val] args)
+               (let* ((caller (get-caller cont))
+                      (caller-name (or (##procedure-friendly-name caller) '?))
+                      (thread (thread-name (current-thread)))
+                      (info-obj (make-log-entry thread cmd msg sym val))
+                      (info-json (object->json-object info-obj)))
+                 ;; have to remove the object type json entry.
+                 (displayln (json-get info-json __struct:))
+                 (logger info-json)))
+             (catch (e)
+               (display-exception e))))
+           ((state) logger)
+           ((dir path) (subpath top path))
+           (else (error "Uknown command for logger."))))))))
 
-(defrules log (stx)
-  ((log log-proc msg)
-   (log-proc 'log msg 'nil 'nil))
-  ((log log-proc msg obj)
-   (log-proc 'log msg 'obj obj)))
-
-
-(def log-file (make-parameter "/dev/null"))
-(def test (make-logger name: 'default-test-logger level: 6 file: (log-file)))
-(def trace (make-logger name: 'default-trace-logger level: 5 file: (log-file)))
-(def debug (make-logger name: 'default-debug-logger level: 4 file: (log-file)))
-(def info (make-logger name: 'default-info-logger level: 3 file: (log-file)))
-(def warn (make-logger name: 'default-warn-logger level: 2 file: (log-file)))
-(def error (make-logger name: 'default-error-logger level: 1 file: (log-file)))
+(defrules log-info ()
+  ((_ logger msg sym)
+   (logger 'info msg 'sym sym)))
+(defrules log-debug ()
+  ((_ logger msg sym)
+   (logger 'debug msg 'sym sym)))
+(defrules log-trace ()
+  ((_ logger msg sym)
+   (logger 'trace msg 'sym sym)))
+(defrules log-warn ()
+  ((_ logger msg sym)
+   (logger 'warn msg 'sym sym)))
+(defrules log-error ()
+  ((_ logger msg sym)
+   (logger 'error msg 'sym sym)))

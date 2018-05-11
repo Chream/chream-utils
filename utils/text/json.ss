@@ -3,6 +3,8 @@
 
 (import :std/srfi/1
         (only-in :std/pregexp pregexp-match)
+        (only-in :std/misc/list plist->alist)
+        (only-in :std/misc/rtd type-name)
         (only-in :std/text/json read-json write-json json-symbolic-keys string->json-object json-object->string)
         (only-in :clan/utils/base if-let when-let)
         (only-in :clan/utils/json pretty-print-json)
@@ -14,6 +16,25 @@
 (export #t)
 
 (defalias pp pretty-print-json)
+
+(def (object->json-object obj)
+  (let (json (make-json))
+    (with ([type: type slots ...] (object->list obj))
+      (when (struct-object? obj)
+        (json-add! json __struct: (type-name type)))
+      (when (class-object? obj)
+        (json-add! json __class: (type-name type)))
+      (for-each
+        (match <>
+          ([k . v] (cond
+                    ((object? v)
+                     (json-add! json
+                                k
+                                (object->json-object v)))
+                    (else
+                     (json-add! json k v)))))
+        (plist->alist slots)))
+    json))
 
 (def (read-json-equal in)
   (parameterize ((json-symbolic-keys #f))

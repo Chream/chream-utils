@@ -76,15 +76,15 @@
             (entry-spec-1 entry-spec))
     (cond ((null? entry-spec-1)
            (error "Illegal number of arguments Must be odd. length: "
-             (length entry-spec-1))
-           ((= 1 (length entry-spec-1))
-            (let* ((key (car entry-spec-1))
-                   (present? (hash-get ht-1 (car entry-spec-1))))
-              (if present?
-                (begin
-                  (hash-remove! ht-1 (car entry-spec-1))
-                  (values present? #t))
-                (values #f #f)))))
+             (length entry-spec-1)))
+          ((= 1 (length entry-spec-1))
+           (let* ((key (car entry-spec-1))
+                  (present? (hash-get ht-1 (car entry-spec-1))))
+             (if present?
+               (begin
+                 (hash-remove! ht-1 (car entry-spec-1))
+                 (values present? #t))
+               (values #f #f))))
           (else
            (let* ((key (car entry-spec-1))
                   (entry (hash-get ht-1 key)))

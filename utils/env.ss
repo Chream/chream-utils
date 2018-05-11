@@ -11,12 +11,8 @@
   "text/json"
   "misc/repr")
 
-;; These paths should be parameterized on top of your application,
-;; typically with e.g.
-;;   (parameterize ((application-source-envvar "MY_APP_SOURCE")
-;;                  (application-home-envvar "MY_APP_HOME"))
-;;       (main . args)
-;;             ...)
+;; This struct should constructed for each app. It can be passed
+;; to the defined procedures or parameterized through 'current-env-context`
 
 (defstruct app-env (name source-var home-var log-var)
   constructor: init!)
@@ -27,6 +23,7 @@
     (app-env-source-var-set! self source)
     (app-env-home-var-set! self home)
     (app-env-log-var-set! self log)))
+
 (def (current-env-context)
   (make-parameter #f))
 

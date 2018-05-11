@@ -81,7 +81,7 @@
                       (lp! entry (cdr entry-spec-1)))
                      (entry
                       (let (ht-1 (make-json))
-                        (set-fn! ht-1 "%%old-value" entry)
+                        (set-fn! ht-1 "__old-value" entry)
                         (force-set-fn! table-1 key ht-1)
                         (lp! ht-1 (cdr entry-spec-1))))
                      (else

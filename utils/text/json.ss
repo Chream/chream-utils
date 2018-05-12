@@ -27,13 +27,16 @@
         (json-add! json __class: (type-name type)))
       (for-each
         (match <>
-          ([k . v] (cond
-                    ((object? v)
-                     (json-add! json
-                                k
-                                (object->json-object v)))
-                    (else
-                     (json-add! json k v)))))
+          ([k . v]
+           (cond
+            ((hash-table? v)
+             (json-add! json k v))
+            ((object? v)
+             (json-add! json
+                        k
+                        (object->json-object v)))
+            (else
+             (json-add! json k v)))))
         (plist->alist slots)))
     json))
 

@@ -16,7 +16,7 @@
 
 (export #t (import: :std/text/json))
 
-(defstruct json-object (e refs))
+(defstruct json-object (e %refs))
 
 (def (make-json (ht (make-hash-table)))
   (make-json-object ht #f))

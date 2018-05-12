@@ -11,15 +11,13 @@
 (def alist-fail1  '(a (b . 6)))
 (def log-str "alist-test")
 
-(def logger (make-logger "test" top: "~/tmp" name: "alist-test-logger"))
-
 (def (test-lookup)
-  (log-debug logger log-str (values->list (lookup alist1 'a)))
-  (log-debug logger log-str (values->list (lookup alist1 'b)))
-  (log-debug logger log-str (values->list (lookup alist1 'd)))
-  (log-debug logger log-str (values->list (lookup alist-empty1 'a)))
-  ;; (log test (values->list (lookup alist-fail1 'b)))
-  ;; (log test (values->list (lookup alist-fail1 'a)))
+  (log 'debug log-str (values->list (lookup alist1 'a)))
+  (log 'debug log-str (values->list (lookup alist1 'b)))
+  (log 'debug log-str (values->list (lookup alist1 'd)))
+  (log 'debug log-str (values->list (lookup alist-empty1 'a)))
+  ;; (log 'debug test (values->list (lookup alist-fail1 'b)))
+  ;; (log 'debug test (values->list (lookup alist-fail1 'a)))
   'ok)
 
 
@@ -30,12 +28,12 @@
 ;; *** ERROR IN #<procedure #10> -- No clause matching a
 
 (def (test-drop)
-  (log-debug logger log-str (values->list (drop alist1 'a)))
-  (log-debug logger log-str (values->list (drop alist1 'b)))
-  (log-debug logger log-str (values->list (drop alist1 'd)))
-  (log-debug logger log-str (values->list (drop alist-empty1 'a)))
-  ;; (log-debug logger (values->list (drop alist-fail1 'b)))
-  ;; (log-debug logger (values->list (drop alist-fail1 'a)))
+  (log 'debug log-str (values->list (drop alist1 'a)))
+  (log 'debug log-str (values->list (drop alist1 'b)))
+  (log 'debug log-str (values->list (drop alist1 'd)))
+  (log 'debug log-str (values->list (drop alist-empty1 'a)))
+  ;; (log 'debug (values->list (drop alist-fail1 'b)))
+  ;; (log 'debug (values->list (drop alist-fail1 'a)))
   'ok)
 
 ;; (((b . 6) (c . 10)))
@@ -45,15 +43,17 @@
 ;; *** ERROR IN filter -- No clause matching a
 
 (def (test-insert)
-  (let (l (values->list (insert alist1 'a 10)))
-    (logg l)
-    (log-debug logger log-str l)
-    ;; (log-debug logger log-str (values->list (insert alist1 'b 20)))
-    ;; (log-debug logger log-str (values->list (insert alist1 'd 30)))
-    ;; (log-debug logger log-str (values->list (insert alist-empty1 'a 100)))
+  (let* ((r1 (insert alist1 'a 10))
+         (r2 (insert alist1 'b 20))
+         (r3 (insert alist1 'd 30))
+         (r4 (insert alist-empty1 'a 100)))
+    (log 'debug log-str r1)
+    (log 'debug log-str r2)
+    (log 'debug log-str r3)
+    (log 'debug log-str r4)
     )
-  ;; (log-debug logger (values->list (insert alist-fail1 'b)))
-  ;; (log-debug logger (values->list (insert alist-fail1 'a)))
+  ;; (log 'debug (values->list (insert alist-fail1 'b)))
+  ;; (log 'debug (values->list (insert alist-fail1 'a)))
   'ok)
 
 ;; (((a . 10) (b . 6) (c . 10)))
@@ -64,6 +64,7 @@
 ;; (#<procedure #15> '#<table #18> '(a (b . 6)) 'b)
 
 (def (run-alist-tests)
-  (test-lookup)
-  (test-lookup)
-  (test-insert))
+  (parameterize ((current-logger (make-logger "test" top: "~/tmp" name: "alist-test-logger")))
+    (test-lookup)
+    (test-lookup)
+    (test-insert)))

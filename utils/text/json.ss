@@ -16,10 +16,10 @@
 
 (export #t (import: :std/text/json))
 
-(defstruct json-object (e %refs))
+(defstruct json-object (e))
 
 (def (make-json (ht (make-hash-table)))
-  (make-json-object ht #f))
+  (make-json-object ht))
 
 ;; read and write
 
@@ -77,7 +77,7 @@
 (defmethod {:json jsonable} json-object<-)
 
 (def (string->json-object str)
-  (make-json (std/text/json#read-json (open-input-string str) #f)))
+  (make-json (std/text/json#read-json-object (open-input-string str) #f)))
 
 (def (json-object->string obj)
   (match obj

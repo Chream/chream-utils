@@ -6,10 +6,12 @@
         "misc/all"
         "text/all"
         "logger"
-        "env")
+        "env"
+        "jsonrpc")
 (export (import: "gerbil/all"
                  "map/all"
                  "misc/all"
                  "text/all"
                  "logger"
-                 "env"))
+                 "env"
+                 "jsonrpc"))

@@ -11,10 +11,10 @@
 (defstruct jsonrpc-error (code msg data))
 
 ;; Implement json
-(defmethod {:json json-request} object->json-object)
-(defmethod {:json json-response} object->json-object)
-(defmethod {:json json-notification} object->json-object)
-(defmethod {:json json-error} object->json-object)
+(defmethod {:json jsonrpc-request} object->json-object)
+(defmethod {:json jsonrpc-response} object->json-object)
+(defmethod {:json jsonrpc-notification} object->json-object)
+(defmethod {:json jsonrpc-error} object->json-object)
 
 (def error-codes
   (let (table (make-hash-table))

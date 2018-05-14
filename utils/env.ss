@@ -24,7 +24,7 @@
     (app-env-home-var-set! self home)
     (app-env-log-var-set! self log)))
 
-(def (current-env-context)
+(def current-env-context
   (make-parameter #f))
 
 (def (source-directory (env (current-env-context)))

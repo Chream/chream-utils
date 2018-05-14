@@ -25,6 +25,10 @@
   (lambda (self (ht (make-hash-table)))
     (json-e-set! self ht)))
 
+(defmethod {:json json}
+  (lambda (self)
+    (json-e self)))
+
 ;; read and write
 
 (def (read-json (port (current-output-port)))

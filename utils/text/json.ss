@@ -81,7 +81,7 @@
 (defmethod {:json jsonable} json<-)
 
 (def (string->json str)
-  (make-json (std/text/json#read-json (open-input-string str) #f)))
+  (make-json (std/text/json#read-json (open-input-string str))))
 
 (def (json->string obj)
   (match obj
@@ -133,7 +133,7 @@
                (length entry-spec-1)))
             ((= 1 (length entry-spec-1))
              (let* ((key (car entry-spec-1))
-                    (present? (hash-get ht-1 kwy)))
+                    (present? (hash-get ht-1 key)))
                (if present?
                  (begin
                    (hash-remove! ht-1 key)

@@ -5,16 +5,10 @@
 (export #t)
 
 ;; jsonrpc interface.
-(defstruct jsonrpc-request (id method params))
-(defstruct jsonrpc-response (id result error))
-(defstruct jsonrpc-notification (method params))
-(defstruct jsonrpc-error (code msg data))
-
-;; Implement json
-(defmethod {:json jsonrpc-request} object->json-object)
-(defmethod {:json jsonrpc-response} object->json-object)
-(defmethod {:json jsonrpc-notification} object->json-object)
-(defmethod {:json jsonrpc-error} object->json-object)
+(defclass (jsonrpc-request jsonable) (id method params))
+(defclass (jsonrpc-response jsonable) (id result error))
+(defclass (jsonrpc-notification jsonable) (method params))
+(defclass (jsonrpc-error jsonable) (code msg data))
 
 (def error-codes
   (let (table (make-hash-table))

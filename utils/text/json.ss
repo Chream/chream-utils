@@ -281,3 +281,29 @@
     (call-with-output-file path
       (lambda (out)
         (write-json (make-json) out)))))
+
+;; actor
+
+(defproto json+
+  call:
+  (get keys ...)
+  event:
+  (add! k v)
+  (delete! k))
+
+(def (make-json-concurent obj)
+  (let ((ht (json-e obj)))
+    (let lp ()
+      (try
+       (<- ((!json+.get keys ... k)
+            (apply json-get `(,ht ,@keys))
+            (lp))
+           ((!json+.add! keys ... val)
+            (apply json-add! `(,ht ,@keys ,val))
+            (lp))
+           ((!json+.delete! keys ...)
+            (apply json-delete! `(,ht ,@keys))
+            (lp)))
+       (catch (e)
+         (display-exception e)
+         (lp))))))

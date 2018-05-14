@@ -2,7 +2,10 @@
 ;;; © Chream
 
 (import :std/srfi/1
+        :std/actor
+        :std/sugar
         :clan/utils/subprocess
+        (only-in :gerbil/gambit display-exception)
         (only-in :std/misc/ports read-all-as-string)
         (only-in :std/text/json json-symbolic-keys)
         (only-in :std/pregexp pregexp-match)
@@ -16,10 +19,11 @@
 
 (export #t (import: :std/text/json))
 
-(defstruct json-object (e))
+(defstruct json (e) constructor: init!)
 
-(def (make-json (ht (make-hash-table)))
-  (make-json-object ht))
+(defmethod {init! json}
+  (lambda (self (ht (make-hash-table)))
+    (json-e-set! self ht)))
 
 ;; read and write
 
@@ -42,18 +46,18 @@
 
 (def (write-json obj (port (current-output-port)))
   (match obj
-    ((json-object e)
+    ((json e)
      (std/text/json#write-json e port))))
 
 ;; conversions
 
-(def (json-object<- obj)
+(def (json<- obj)
   (match obj
-    (object? (object->json-object obj))
-    (string? (string->json-object obj))
-    (else obj)))
+    (object? (object->json obj))
+    (string? (string->json obj))
+    (else (error "Cant convert to json: " obj))))
 
-(def (object->json-object obj)
+(def (object->json obj)
   (check-type object? obj)
   (let (json (make-json))
     (with ([type: type slots ...] (object->list obj))
@@ -67,30 +71,30 @@
            (match v
              (hash-table? (json-add! json k v))
              (object?     (json-add! json k
-                                     (object->json-object v)))
+                                     (object->json v)))
             (else (json-add! json k v)))))
         (plist->alist slots)))
     json))
 
 ;; Mixin for a trivial method that just lists all slots
 (defclass jsonable ())
-(defmethod {:json jsonable} json-object<-)
+(defmethod {:json jsonable} json<-)
 
-(def (string->json-object str)
-  (make-json (std/text/json#read-json-object (open-input-string str) #f)))
+(def (string->json str)
+  (make-json (std/text/json#read-json (open-input-string str) #f)))
 
-(def (json-object->string obj)
+(def (json->string obj)
   (match obj
-    ((json-object e)
+    ((json e)
      (let ((port (open-output-string)))
-       (std/text/json#write-json-object e port)
+       (std/text/json#write-json e port)
        (get-output-string port)))))
 
 ;; Map
 
 (def (json-input-fn-generator get-fn set-fn! force-set-fn! constructor-fn)
   (lambda (obj . entry-spec)
-    (with ((json-object e) obj)
+    (with ((json e) obj)
       (let lp! ((table-1 e)
                 (entry-spec-1 entry-spec))
         (cond ((null? entry-spec-1)
@@ -121,7 +125,7 @@
 ;; add list version?
 
 (def (json-delete! obj . entry-spec)
-  (with ((json-object e) obj)
+  (with ((json e) obj)
     (let lp! ((ht-1 e)
               (entry-spec-1 entry-spec))
       (cond ((null? entry-spec-1)
@@ -129,10 +133,10 @@
                (length entry-spec-1)))
             ((= 1 (length entry-spec-1))
              (let* ((key (car entry-spec-1))
-                    (present? (hash-get ht-1 (car entry-spec-1))))
+                    (present? (hash-get ht-1 kwy)))
                (if present?
                  (begin
-                   (hash-remove! ht-1 (car entry-spec-1))
+                   (hash-remove! ht-1 key)
                    (values present? #t))
                  (values #f #f))))
             (else
@@ -143,7 +147,7 @@
                  (error "json-delete: key not present!" (car entry-spec-1)))))))))
 
 (def (json-get obj . entry-spec)
-  (with ((json-object e) obj)
+  (with ((json e) obj)
     (let lp ((ht-1 e)
              (entry-spec-1 entry-spec))
       (cond ((null? entry-spec)
@@ -158,7 +162,7 @@
                  #f)))))))
 
 (def (json-append! obj . entry-spec)
-  (with ((json-object e) obj)
+  (with ((json e) obj)
     (let lp! ((ht-1 e)
               (entry-spec-1 entry-spec))
       (let (len (length entry-spec-1))
@@ -182,8 +186,8 @@
                    (error "json-append!: key not present!" (car entry-spec-1))))))))))
 
 (def (json-merge! obj1 obj2)
-  (let ((e1 (json-object-e obj1))
-        (e2 (json-object-e obj2)))
+  (let ((e1 (json-e obj1))
+        (e2 (json-e obj2)))
     (hash-for-each
      (lambda (k v)
        (cond ((hash-table? v)
@@ -201,14 +205,14 @@
 
 (def (json-empty? obj)
   (match obj
-    ((json-object e)
+    ((json e)
      (hash-empty? e))))
 
 (def (copy-json obj)
   (match obj
-    ((json-object e)
-     (make-json (string->json-object
-                 (json-object->string e))))))
+    ((json e)
+     (make-json (string->json
+                 (json->string e))))))
 
 ;; Ref interface
 ;; This enables common used values to be saved in
@@ -245,11 +249,11 @@
 
 (def (json-ref-lookup obj key ref)
   (match obj
-    ((json-object e) (json-get e key ref))))
+    ((json e) (json-get e key ref))))
 
 (def (json-refs-expand! obj refs)
   (match obj
-    ((json-object e)
+    ((json e)
      (hash-for-each
       (lambda (k v)
         (let (ref-val (json-get e k v))
@@ -262,7 +266,7 @@
 
 (def (pretty-json obj)
   (match obj
-    ((json-object e)
+    ((json e)
      (filter-with-process
       ["jq" "-M" "."]
       (lambda (port) (std/text/json#write-json e port))

@@ -58,10 +58,11 @@
 ;; conversions
 
 (def (json<- obj)
-  (match obj
-    (object? (object->json obj))
-    (string? (string->json obj))
-    (else (error "Cant convert to json: " obj))))
+  (cond
+   ((object? obj) (object->json obj))
+   ((alist?  obj) (alist->json obj))
+   ((string? obj) (string->json obj))
+   (else (error "Cant convert to json: " obj))))
 
 (def (object->json obj)
   (check-type object? obj)

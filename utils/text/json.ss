@@ -53,64 +53,51 @@
 (def (write-json obj (port (current-output-port)))
   (match obj
     ((json e)
-     (std/text/json#write-json e port))))
+     (std/text/json#write-json e port))
+    (else (std/text/json#write-json obj port))))
 
 ;; conversions
 
 (def (json<- obj)
   (cond
-   ((object? obj) (object->json obj))
-   ((alist?  obj) (alist->json obj))
-   ((string? obj) (string->json obj))
-   (else (error "Cant convert to json: " obj))))
+   ((json?   obj)        obj)
+   ((number? obj)        obj)
+   ((class-object? obj)  (class->json obj))
+   ((struct-object? obj) (struct->json obj))
+   ((hash-table? obj)    (hash-table->json obj))
+   ((alist?  obj)        (alist->json obj))
+   ((string? obj)        (try (string->json obj) (catch (e) obj)))
+   ((symbol? obj)        (symbol->string obj))
+   ((keyword? obj)       (keyword->string obj))
+   ((list?   obj)        (map json<- obj))
+   ((vector? obj)        (map json<- (vector->list obj)))
+   ((eq? #t  obj)        "true")
+   ((eq? #f  obj)        "false")
+   ((void?   obj)        "null")
+   (else                 {:json obj})))
 
-(def (object->json obj)
-  (check-type object? obj)
-  (let (json (make-json))
-    (with ([type: type slots ...] (object->list obj))
-      (when (struct-object? obj)
-        (json-add! json __struct: (type-name type)))
-      (when (class-object? obj)
-        (json-add! json __class: (type-name type)))
-      (for-each
-        (match <>
-          ([k . v]
-           (match v
-             (hash-table? (json-add! json k v))
-             (object?     (json-add! json k
-                                     (object->json v)))
-            (else (json-add! json k v)))))
-        (plist->alist slots)))
-    json))
+(def (string-e key)
+  (cond
+   ((string? key) key)
+   ((symbol? key)
+    (symbol->string key))
+   ((keyword? key)
+    (keyword->string key))
+   (else
+    (error "Illegal hash key; must be symbol, keyword or string" key))))
 
-;; Mixin for a trivial method that just lists all slots
-(defclass jsonable ())
-(defmethod {:json jsonable} json<-)
-
-(def (alist->json alist)
-
-  (def (string-e key)
-    (cond
-     ((string? key) key)
-     ((symbol? key)
-      (symbol->string key))
-     ((keyword? key)
-      (keyword->string key))
-     (else
-      (error "Illegal hash key; must be symbol, keyword or string" alist key))))
-
-  (let (json (make-json))
-    (let lp ((alist-1 alist))
-      (match alist-1
-        ([[key . val] . rest]
-         (json-add! json
-                    (string-e key)
-                    (if (alist? val)
-                      (alist->json val)
-                      val))
-         (lp rest))
-        ([] json)
-        (alist (error "Not proper alist!" alist))))))
+(def (alist->json alist include-meta: (include-meta? #f) into: (json (make-json)))
+  (when include-meta?
+    (json-add! json __alist: "null"))
+  (let lp ((alist-1 alist))
+    (match alist-1
+      ([[key . val] . rest]
+       (json-add! json
+                  (string-e key)
+                  (json<- val))
+       (lp rest))
+      ([] json)
+      (alist (error "Not proper alist!" alist)))))
 
 (def (json->alist obj)
   (match obj
@@ -137,6 +124,43 @@
      (let ((port (open-output-string)))
        (std/text/json#write-json e port)
        (get-output-string port)))))
+
+(def (object->json obj include-meta: (include-meta? #f) into: (json (make-json)))
+  (check-type object? obj)
+  (cond
+   ((hash-table? obj) (hash-table->json obj))
+   ((struct-object? obj) (class->json obj))
+   ((class-object? obj) (struct->json obj))
+   (else (error "Not an object!" obj))))
+
+(def (class->json obj include-meta: (include-meta? #f) into: (json (make-json)))
+  (check-type class-object? obj)
+  (with ([type: type slots ...] (object->list obj))
+    (when include-meta?
+      (json-add! json __class: (type-name type)))
+    (alist->json (plist->alist slots) include-meta: include-meta? into: json))
+  json)
+
+(def (struct->json obj include-meta: (include-meta? #f) into: (json (make-json)))
+  (check-type struct-object? obj)
+  (with ([type: type slots ...] (object->list obj))
+    (when include-meta?
+      (json-add! json __struct: (type-name type)))
+    (alist->json (plist->alist slots) include-meta: include-meta? into: json))
+  json)
+
+(def (hash-table->json obj include-meta: (include-meta? #f) into: (json (make-json)))
+  (check-type hash-table? obj)
+  (with ([type: type slots ...] (object->list obj))
+    (when include-meta?
+      (json-add! json __table: (type-name type)))
+    (alist->json (plist->alist slots) include-meta: include-meta? into: json))
+  json)
+
+
+;; Mixin for a trivial method that just lists all slots
+(defclass jsonable ())
+(defmethod {:json jsonable} json<-)
 
 ;; Map
 

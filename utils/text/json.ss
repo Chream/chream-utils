@@ -129,8 +129,8 @@
   (check-type object? obj)
   (cond
    ((hash-table? obj) (hash-table->json obj))
-   ((struct-object? obj) (class->json obj))
-   ((class-object? obj) (struct->json obj))
+   ((struct-object? obj) (struct->json obj))
+   ((class-object? obj) (class->json obj))
    (else (error "Not an object!" obj))))
 
 (def (class->json obj include-meta: (include-meta? #f) into: (json (make-json)))

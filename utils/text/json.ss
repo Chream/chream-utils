@@ -9,7 +9,7 @@
         (only-in :std/misc/ports read-all-as-string)
         (only-in :std/text/json json-symbolic-keys)
         (only-in :std/pregexp pregexp-match)
-        (only-in :std/misc/list plist->alist)
+        (only-in :std/misc/list plist->alist alist?)
         (only-in :std/misc/rtd type-name)
         (only-in  "../misc/asserts" check-type)
         "../map/hash"
@@ -85,6 +85,47 @@
 ;; Mixin for a trivial method that just lists all slots
 (defclass jsonable ())
 (defmethod {:json jsonable} json<-)
+
+(def (alist->json alist)
+
+  (def (string-e key)
+    (cond
+     ((string? key) key)
+     ((symbol? key)
+      (symbol->string key))
+     ((keyword? key)
+      (keyword->string key))
+     (else
+      (error "Illegal hash key; must be symbol, keyword or string" alist key))))
+
+  (let (json (make-json))
+    (let lp ((alist-1 alist))
+      (match alist-1
+        ([[key . val] . rest]
+         (json-add! json
+                    (string-e key)
+                    (if (alist? val)
+                      (alist->json val)
+                      val))
+         (lp rest))
+        ([] json)
+        (alist (error "Not proper alist!" alist))))))
+
+(def (json->alist obj)
+  (match obj
+    ((json e)
+     (let (alist [])
+       (hash-for-each
+        (lambda (k v)
+          (set! alist (cons (cons (if (json-symbolic-keys)
+                                    (string->symbol k)
+                                    k)
+                                  (if (json? v)
+                                    (json->alist v)
+                                    v))
+                            alist)))
+        e)
+       alist))))
 
 (def (string->json str)
   (make-json (std/text/json#read-json (open-input-string str))))

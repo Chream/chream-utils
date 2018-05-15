@@ -22,7 +22,9 @@
 (defstruct json (e) constructor: init!)
 
 (defmethod {init! json}
-  (lambda (self (ht (make-hash-table)))
+  (lambda (self (ht (if (json-symbolic-keys)
+                 (make-hash-table-eq)
+                 (make-hash-table))))
     (json-e-set! self ht)))
 
 (defmethod {:json json}

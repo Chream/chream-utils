@@ -116,14 +116,12 @@
        alist))))
 
 (def (string->json str)
-  (make-json (std/text/json#read-json (open-input-string str))))
+  (read-json (open-input-string str)))
 
 (def (json->string obj)
-  (match obj
-    ((json e)
-     (let ((port (open-output-string)))
-       (std/text/json#write-json e port)
-       (get-output-string port)))))
+  (let ((port (open-output-string)))
+    (write-json obj port)
+    (get-output-string port)))
 
 (def (object->json obj include-meta: (include-meta? #f) into: (json (make-json)))
   (check-type object? obj)
@@ -337,12 +335,10 @@
 ;; wrappers from std/text/json
 
 (def (pretty-json obj)
-  (match obj
-    ((json e)
-     (filter-with-process
-      ["jq" "-M" "."]
-      (lambda (port) (std/text/json#write-json e port))
-      read-all-as-string))))
+  (filter-with-process
+   ["jq" "-M" "."]
+   (lambda (port) (write-json obj port))
+   read-all-as-string))
 
 (def (pretty-print-json obj (port (current-output-port)))
   (display (pretty-json obj) port)

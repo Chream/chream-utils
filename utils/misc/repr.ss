@@ -3,6 +3,8 @@
 
 (import :std/misc/rtd
         :std/sugar
+        (only-in :std/misc/rtd type-name)
+        (only-in :std/misc/list alist->plist)
         (only-in :gerbil/gambit display-exception)
         (only-in :std/srfi/1 append-map)
         (only-in "asserts" check-type))
@@ -45,6 +47,9 @@
                 (slot-names (map symbol->keyword (slot-names obj)))
                 (slot-values (cdr (struct->list obj))))
            (cons* type: type (append-map list slot-names slot-values))))
+        ((hash-table? obj)
+         (let* ((type (object-type obj)))
+           `(type: ,type ,@(alist->plist (hash->list obj)))))
         (else (error "Not an object ~S" obj))))
 
 ;; procedure inspection

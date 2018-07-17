@@ -27,10 +27,6 @@
                  (make-hash-table))))
     (json-e-set! self ht)))
 
-(defmethod {:json json}
-  (lambda (self)
-    (json-e self)))
-
 ;; read and write
 
 (def (read-json (port (current-output-port)))
@@ -53,28 +49,28 @@
 (def (write-json obj (port (current-output-port)))
   (match obj
     ((json e)
-     (std/text/json#write-json e port))
-    (else (std/text/json#write-json obj port))))
+     (std/text/json#write-json e port))))
 
 ;; conversions
 
-(def (json<- obj)
+(def (json-type<- obj include-meta: (include-meta? #f))
   (cond
+   ((method-ref "hey" ':json)
+    ;; As `call method' does not signal a specific error we cant catch
+    ;; the specific error. ie need to check for a method manually.
+    {:json obj})
    ((json?   obj)        obj)
    ((number? obj)        obj)
-   ((class-object? obj)  (class->json obj))
-   ((struct-object? obj) (struct->json obj))
-   ((hash-table? obj)    (hash-table->json obj))
-   ((alist?  obj)        (alist->json obj))
+   ((object? obj)        (object->json include-meta: include-meta?))
+   ((alist?  obj)        (alist->json obj include-meta: include-meta?))
    ((string? obj)        (try (string->json obj) (catch (e) obj)))
    ((symbol? obj)        (symbol->string obj))
    ((keyword? obj)       (keyword->string obj))
-   ((list?   obj)        (map json<- obj))
-   ((vector? obj)        (map json<- (vector->list obj)))
+   ((list?   obj)        (map json-type<- obj))
+   ((vector? obj)        (map json-type<- (vector->list obj)))
    ((eq? #t  obj)        "true")
    ((eq? #f  obj)        "false")
-   ((void?   obj)        "null")
-   (else                 {:json obj})))
+   ((void?   obj)        "null")))
 
 (def (string-e key)
   (cond
@@ -94,7 +90,7 @@
       ([[key . val] . rest]
        (json-add! json
                   (string-e key)
-                  (json<- val))
+                  (json-type<- val))
        (lp rest))
       ([] json)
       (alist (error "Not proper alist!" alist)))))
@@ -158,9 +154,9 @@
 
 ;; Mixin for a trivial method that just lists all slots
 (defclass jsonable ())
-(defmethod {:json jsonable} json<-)
+(defmethod {:json jsonable} json-type<-)
 
-;; Map
+;; JSON interface
 
 (def (json-input-fn-generator get-fn set-fn! force-set-fn! constructor-fn)
   (lambda (obj . entry-spec)
@@ -192,7 +188,7 @@
 
 (def json-add! (json-input-fn-generator hash-get hash-add! hash-put! make-json))
 (def json-put! (json-input-fn-generator hash-get hash-put! hash-put! make-json))
-;; add list version?
+;; TODO add list/many version?
 
 (def (json-delete! obj . entry-spec)
   (with ((json e) obj)

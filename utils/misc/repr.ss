@@ -50,7 +50,7 @@
         ((hash-table? obj)
          (let* ((type (object-type obj)))
            `(type: ,type ,@(alist->plist (hash->list obj)))))
-        (else (error "Not an object ~S" obj))))
+        (else (error "Not an object!" obj))))
 
 ;; procedure inspection
 

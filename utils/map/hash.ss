@@ -44,3 +44,31 @@
                        (ret v))
                      ht)
       (ret #f))))
+
+(def (alist->hash alist into: (ht (make-hash-table)))
+  (for-each (match <>
+              ([k . v] (hash-add! ht k v))
+              ([] ht))
+            alist))
+
+(def (hash->alist ht)
+  (let (alist [])
+    (hash-for-each (lambda (k v)
+                     (set! alist (cons [k . v] alist)))
+                   ht)))
+
+(def (plist->hash plist into: (ht (make-hash-table)))
+  (let lp ((plist-1 plist))
+    (match plist-1
+      ([k v . rest]
+       (hash-add! ht k v)
+       (lp rest))
+      ([] ht)
+      (else (error "Malformed plist" plist-1)))))
+
+(def (hash->plist ht)
+  (let (plist [])
+    (hash-for-each (lambda (k v)
+                     (set! plist (cons* k v plist)))
+                   ht)
+    plist))
